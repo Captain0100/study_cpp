@@ -1,0 +1,259 @@
+#include<iostream>
+#include<conio.h>
+#include<windows.h>
+#include<time.h>
+using namespace std;
+//地图大小
+#define row 25
+#define col 35
+//类记录坐标
+class Memory
+{
+public:
+	Memory()
+	{
+		r = 0, c = 0;
+	}
+	Memory(int a, int b)
+	{
+		r = a;
+		c = b;
+	}
+	int r;//row
+	int c;//column
+};
+//记录方向
+enum direction
+{
+	Up,
+	Down,
+	Left,
+	Right
+};
+direction dir=Right;
+//蛇长度的最大范围0~255
+Memory locat[256];
+//坐标值
+int r = 0;
+int c = 0;
+//蛇的长度减一
+int size=2;
+//判断蛇的状态
+bool alive = true;
+//记录分数
+int score = 0;
+//记录步数
+int step = 0;
+//打印图表
+void Draw(char arr[row][col])
+{
+	int ic = 0;
+	int ir = 0;
+	system("cls");
+	//行和列
+	for (ic = 0; ic < col + 2; ic++)
+	{
+		cout << '*';
+	}
+	cout << endl;
+	for (ir = 0; ir < row; ir++)
+	{
+		cout << "*";
+		for (ic = 0; ic < col; ic++)
+		{
+			cout << arr[ir][ic];
+		}
+		if (ir == 2)
+		{
+			cout << "*" << "score:" << score << endl;
+		}
+		else if (ir == 4)
+		{
+			cout << "*" << "step:" << step << endl;
+		}
+		else cout << "*" << endl;
+	}
+	for (ic = 0; ic < col + 2; ic++)
+	{
+		cout << '*';
+	}
+	cout << endl;
+}
+//初始化图表
+void BlankMap(char arr[row][col])
+{
+	int ir = 0;
+	int ic = 0;
+	for (ir = 0; ir < row; ir++)
+	{
+		for (ic = 0; ic < col; ic++)
+		{
+			arr[ir][ic] = ' ';
+		}
+	}
+}
+//游戏运算
+void Logic(char arr[row][col])
+{
+	//蛇头坐标变换
+	if (dir == Up)r--;
+	if (dir == Down)r++;
+	if (dir == Right)c++;
+	if (dir == Left)c--;
+	Memory Head(r, c);
+	//死亡判断
+	if (arr[Head.r][Head.c]=='@')
+	{
+		alive = false;
+	}
+	if (arr[Head.r][Head.c] == '*')
+	{
+		alive = false;
+	}
+	if (Head.c > col-1 || Head.c<0)
+	{
+		alive = false;
+	}
+	if (Head.r > row-1 || Head.r<0)
+	{
+		alive = false;
+	}
+	//得分判断
+	if (arr[Head.r][Head.c] == '$')
+	{
+		::size++;
+		score++;
+	}
+	locat[0] = Head;
+	//去掉尾巴，保持长度,size-1=5
+	arr[locat[::size-1].r][locat[::size-1].c] = ' ';
+	//对蛇的坐标进行更新
+	for (int i = ::size - 1; i > 0; i--)
+	{
+		locat[i] = locat[i - 1];
+	}
+	arr[r][c] = '@';
+}
+//监测键盘输入
+void input()
+{
+	if (_kbhit())
+	{
+		switch (_getch())
+		{
+		case'w':
+			dir = Up;
+			break;
+		case'W':
+			dir = Up;
+			break;
+		case's':
+			dir = Down;
+			break;
+		case'S':
+			dir = Down;
+			break;
+		case'a':
+			dir = Left;
+			break;
+		case'A':
+			dir = Left;
+			break;
+		case'd':
+			dir = Right;
+			break;
+		case'D':
+			dir = Right;
+			break;
+		default:
+			break;
+		}
+	}
+}
+//生成一个随机水果
+void Randfruit(char arr[row][col])
+{
+	int x = 0, y = 0;
+	while (1)
+	{
+		x = rand() % row;
+		y = rand() % col;
+		if (arr[x][y] == ' ')
+		{
+			arr[x][y] = '$';//水果图标
+			break;
+		}
+	}
+}
+void menu()
+{
+	bool game=1;
+	cout << "       *欢迎来到游戏!" << endl;
+	cout << "       *向上：w" << endl;
+	cout << "       *向下：s" << endl;
+	cout << "       *向左：a" << endl;
+	cout << "       *向右：d" << endl;
+	cout << "       *按下: r 开始游戏" << endl;
+	_kbhit();
+	while (game)
+	{
+		if (_getch() == 'r'|| _getch() == 'R')
+		{
+			break;
+		}
+	}
+	cout << "游戏开始" << endl;
+	Sleep(1250);
+	system("cls");
+}
+void map1(char arr[row][col])
+{
+	int i = 0, j = 0;
+	for (i = 0; i < (col / 2)-3; i++)
+	{
+		arr[row / 2][i] = '*';
+	}
+	for (i = (col/2)+2; i <col; i++)
+	{
+		arr[row / 2][i] = '*';
+	}
+	for (i = 0; i < 6; i++)
+	{
+		arr[i][col / 2] = '*';
+	}
+	for (i = 0; i < row*2/5; i++)
+	{
+		arr[row/2+i][col/4] = '*';
+	}
+}
+int main()
+{
+	char arr[row][col];
+	int count = 0;//步数计数器
+	srand((unsigned int)time(NULL));//随机数种子
+	menu();
+	BlankMap(arr);
+	map1(arr);
+	Randfruit(arr);
+	while (alive)
+	{
+		Sleep(350);//逻辑间隔时间
+		input();
+		Logic(arr);
+		if (alive == false)
+		{
+			break;
+		}
+		Draw(arr);
+		count++;
+		step++;
+		if (count == 25)//每25格生成一个水果
+		{
+			Randfruit(arr);
+			count = 0;
+		}
+	}
+	cout << "game over." << endl;
+	system("pause");
+	return 0;
+}
